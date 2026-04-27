@@ -22,12 +22,11 @@ dvc_check:
     - pip install dvc[s3]
     - echo "=== DVC Version ==="
     - dvc version
-    - echo "=== Checking tracked files ==="
-    - dvc status data/winequality-red.csv.dvc
-    - dvc status models/rf_model.pkl.dvc
-    - echo "=== Attempting dry-run pull ==="
-    - dvc pull --dry-run
-  allow_failure: true
+    - echo "=== Pulling data and models from DVC ==="
+    - dvc pull data/winequality-red.csv
+    - dvc pull models/rf_model.pk
+    - echo "=== DVC pull successful ==="
+  allow_failure: false
   rules:
     - if: $CI_MERGE_REQUEST_IID && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"
       when: on_success
