@@ -1,12 +1,11 @@
 from fastapi import FastAPI, HTTPException, status
-from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
-import os
 
 from .schemas import WineFeatures, PredictionResponse, HealthResponse, ModelInfoResponse
 from .model_loader import ModelLoader
 
 model_loader: ModelLoader = None
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -26,6 +25,7 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+
 @app.get("/", tags=["Root"])
 def read_root():
     return {
@@ -33,6 +33,7 @@ def read_root():
         "docs": "/docs",
         "endpoints": ["/predict", "/health", "/model-info"]
     }
+
 
 @app.post("/predict", response_model=PredictionResponse, tags=["Prediction"])
 async def predict(data: WineFeatures):
@@ -78,6 +79,7 @@ async def predict(data: WineFeatures):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Prediction failed: {str(e)}"
         )
+
 
 @app.get("/health", response_model=HealthResponse, tags=["Health"])
 async def health_check():

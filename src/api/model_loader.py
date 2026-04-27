@@ -1,5 +1,3 @@
-import joblib
-import os
 import subprocess
 from pathlib import Path
 from typing import Optional, Tuple
@@ -57,16 +55,15 @@ class ModelLoader:
                     outs = meta.get('outs', [])
                     if outs and outs[0]:
                         return outs[0].get('md5') or outs[0].get('hash')
-            except:
+            except Exception:
                 pass
         return None
 
     def _load(self) -> bool:
         """Загружает модель и метаданные"""
         if not self.model_path.exists():
-            print(f"Model not found locally, trying DVC pull...")
+            print("Model not found locally, trying DVC pull...")
             self._pull_from_dvc()
-
         if self.model_path.exists():
             try:
                 import joblib

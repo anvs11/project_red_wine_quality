@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
 from typing import Optional
 
+
 class WineFeatures(BaseModel):
     """Входные данные: 11 признаков вина"""
     fixed_acidity: float = Field(..., description="Fixed acidity (g/dm³)")
@@ -33,17 +34,20 @@ class WineFeatures(BaseModel):
         }
     }
 
+
 class PredictionResponse(BaseModel):
     """Ответ эндпоинта /predict"""
     prediction: str = Field(..., description="Predicted quality: 'good' or 'bad'")
     probability: float = Field(..., description="Probability of 'good' class")
     model_version: Optional[str] = Field(None, description="DVC version hash")
 
+
 class HealthResponse(BaseModel):
     """Ответ эндпоинта /health"""
     status: str
     model_loaded: bool
     message: Optional[str] = None
+
 
 class ModelInfoResponse(BaseModel):
     """Ответ эндпоинта /model-info"""

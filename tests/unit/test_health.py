@@ -3,6 +3,7 @@ from src.api.main import app
 
 client = TestClient(app)
 
+
 def test_health_check():
     """Проверка эндпоинта /health"""
     response = client.get("/health")

@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 import joblib
 import mlflow
 import mlflow.sklearn
@@ -18,15 +17,19 @@ from sklearn.metrics import (
     recall_score, roc_auc_score, confusion_matrix
 )
 
+
 def save_confusion_matrix(y_true, y_pred, filename="confusion_matrix.png"):
     cm = confusion_matrix(y_true, y_pred)
     plt.figure(figsize=(6, 5))
     sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
     plt.title("Confusion Matrix")
-    plt.ylabel('True'); plt.xlabel('Predicted')
+    plt.ylabel('True')
+    plt.xlabel('Predicted')
     plt.tight_layout()
-    plt.savefig(filename); plt.close()
+    plt.savefig(filename)
+    plt.close()
     return filename
+
 
 def load_and_preprocess(path):
     """Загрузка данных и бинарное представление quality"""
@@ -38,6 +41,7 @@ def load_and_preprocess(path):
     y = df['quality']
     print(f"Class distribution: {y.value_counts().to_dict()}")
     return X, y
+
 
 def split_dataset(X, y):
     # Подсчет дисбаланса
@@ -59,9 +63,11 @@ def split_dataset(X, y):
     X_train, X_test, y_train, y_test = train_test_split(X, y, **split_kwargs)
     return X_train, X_test, y_train, y_test
 
+
 def train_model(model, X_train, y_train):
     model.fit(X_train, y_train)
     return model
+
 
 def train_and_log(model_name, X_train, y_train, X_test, y_test, params):
     with mlflow.start_run(run_name=f"{model_name}_exp"):
@@ -118,6 +124,7 @@ def train_and_log(model_name, X_train, y_train, X_test, y_test, params):
         print(f"Model saved: {model_path}")
         return roc_auc
 
+
 def evaluate_and_log(model, X_test, y_test, run_name, model_type):
     y_pred = model.predict(X_test)
     y_proba = model.predict_proba(X_test)[:, 1]
@@ -134,9 +141,8 @@ def evaluate_and_log(model, X_test, y_test, run_name, model_type):
         mlflow.log_metric(name, value)
         print(f"{name}: {value:.4f}")
 
-    cm_path = save_confusion_matrix(y_test, y_pred, f"cm_{run_name}.png")
+    # cm_path = save_confusion_matrix(y_test, y_pred, f"cm_{run_name}.png")
     # mlflow.log_artifact(cm_path)
-
     return metrics["roc_auc"], metrics
 
 
@@ -145,7 +151,7 @@ if __name__ == "__main__":
     if os.getenv("AIRFLOW_HOME"):
         # Внутри контейнера Airflow (Linux): файловый бэкенд в смонтированной папке
         mlflow.set_tracking_uri("file:///opt/airflow/project/mlruns")
-        os.environ["GIT_PYTHON_REFRESH"] = "quiet" # подавляем предупреждение о git
+        os.environ["GIT_PYTHON_REFRESH"] = "quiet"  # подавляем предупреждение о git
     else:
         # Локально на хосте (Windows)
         mlflow.set_tracking_uri("file:./mlruns")

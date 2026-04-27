@@ -24,7 +24,7 @@ dvc_check:
     - dvc version
     - echo "=== Pulling data and models from DVC ==="
     - dvc pull data/winequality-red.csv
-    - dvc pull models/rf_model.pk
+    - dvc pull models/rf_model.pkl
     - echo "=== DVC pull successful ==="
   allow_failure: false
   rules:
