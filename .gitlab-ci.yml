@@ -1,0 +1,55 @@
+stages:
+  - lint
+  - dvc_check
+  - unit_tests
+  - integration_tests
+
+flake8:
+  image: python:3.8
+  stage: lint
+  script:
+    - pip install flake8
+    - flake8 src/ api/ tests/ --max-line-length=120 --exclude=venv,__pycache__
+  allow_failure: true
+  rules:
+    - if: $CI_MERGE_REQUEST_IID && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"
+      when: on_success
+
+dvc_check:
+  image: python:3.8
+  stage: dvc_check
+  script:
+    - pip install dvc[s3]
+    - echo "=== DVC Version ==="
+    - dvc version
+    - echo "=== Checking tracked files ==="
+    - dvc status data/winequality-red.csv.dvc
+    - dvc status models/rf_model.pkl.dvc
+    - echo "=== Attempting dry-run pull ==="
+    - dvc pull --dry-run
+  allow_failure: true
+  rules:
+    - if: $CI_MERGE_REQUEST_IID && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"
+      when: on_success
+
+unit_tests:
+  image: python:3.8
+  stage: unit_tests
+  script:
+    - pip install -r requirements-test.txt
+    - pytest tests/unit/ -v
+  rules:
+    - if: $CI_MERGE_REQUEST_IID && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"
+      when: on_success
+
+integration_tests:
+  image: python:3.8
+  stage: integration_tests
+  script:
+    - pip install -r requirements-test.txt
+    - pytest tests/integration/
+  rules:
+    - if: $CI_MERGE_REQUEST_IID && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"
+      when: manual
+  needs:
+    - unit_tests

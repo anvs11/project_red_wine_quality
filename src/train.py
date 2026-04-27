@@ -5,7 +5,9 @@ import mlflow
 import mlflow.sklearn
 import argparse
 import os
+import json
 
+from pathlib import Path
 from config import config
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
@@ -69,11 +71,11 @@ def train_and_log(model_name, X_train, y_train, X_test, y_test, params):
         if model_name == "random_forest":
             from sklearn.ensemble import RandomForestClassifier
             model = RandomForestClassifier(random_state=config["random_state"], **params)
-            model_path = "models/rf_model.pkl"
+            model_path = os.path.join("models", "rf_model.pkl")
         elif model_name == "catboost":
             from catboost import CatBoostClassifier
             model = CatBoostClassifier(random_state=config["random_state"], **params)
-            model_path = "models/catboost_model.cbm"
+            model_path = os.path.join("models", "catboost_model.cbm")
         else:
             raise ValueError(f"Unknown model: {model_name}")
 
@@ -81,14 +83,36 @@ def train_and_log(model_name, X_train, y_train, X_test, y_test, params):
         os.makedirs("models", exist_ok=True)
         if model_name == "random_forest":
             joblib.dump(model, model_path)
-            mlflow.sklearn.log_model(model, "model")
+            # mlflow.sklearn.log_model(model, "model")
+            print(f"Model saved: {model_path}")
         else:
             model.save_model(model_path)
-            mlflow.log_artifact(model_path, "model")
+            # mlflow.log_artifact(model_path, "model")
+            print(f"Model saved: {model_path}")
 
-        roc_auc = evaluate_and_log(model, X_test, y_test,
-                                   run_name=f"{model_name}_exp",
-                                   model_type=model_name)
+        roc_auc, metrics = evaluate_and_log(model, X_test, y_test,
+                                            run_name=f"{model_name}_exp",
+                                            model_type=model_name)
+
+        metadata = {
+            "model_name": "wine-quality-classifier",
+            "model_type": model_name,
+            "metrics": {
+                "accuracy": metrics["accuracy"],
+                "roc_auc": metrics["roc_auc"],
+                "f1_binary": metrics["f1_binary"],
+                "precision": metrics["precision"],
+                "recall": metrics["recall"]
+            },
+            "params": params,
+            "trained_on": pd.Timestamp.now().isoformat(),
+            "dvc_version": None
+        }
+
+        metadata_path = Path("models/model_metadata.json")
+        with open(metadata_path, "w") as f:
+            json.dump(metadata, f, indent=2)
+        print(f"Metadata saved: {metadata_path}")
 
         print(f"Run ID: {mlflow.active_run().info.run_id}")
         print(f"Model saved: {model_path}")
@@ -111,14 +135,23 @@ def evaluate_and_log(model, X_test, y_test, run_name, model_type):
         print(f"{name}: {value:.4f}")
 
     cm_path = save_confusion_matrix(y_test, y_pred, f"cm_{run_name}.png")
-    mlflow.log_artifact(cm_path)
+    # mlflow.log_artifact(cm_path)
 
-    return metrics["roc_auc"]
+    return metrics["roc_auc"], metrics
 
 
 if __name__ == "__main__":
-    mlflow.set_tracking_uri("http://127.0.0.1:5000")
+    # === ОПРЕДЕЛЯЕМ СРЕДУ: Docker или локально ===
+    if os.getenv("AIRFLOW_HOME"):
+        # Внутри контейнера Airflow (Linux): файловый бэкенд в смонтированной папке
+        mlflow.set_tracking_uri("file:///opt/airflow/project/mlruns")
+        os.environ["GIT_PYTHON_REFRESH"] = "quiet" # подавляем предупреждение о git
+    else:
+        # Локально на хосте (Windows)
+        mlflow.set_tracking_uri("file:./mlruns")
+
     mlflow.set_experiment("wine-quality")
+    # mlflow.set_tracking_uri("http://127.0.0.1:5000")
 
     # Парсинг аргументов
     parser = argparse.ArgumentParser()

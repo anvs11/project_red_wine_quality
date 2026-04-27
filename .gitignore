@@ -88,6 +88,8 @@ celerybeat-schedule
 .venv
 .env.bak
 credentials.json
+credentials
+models/model_metadata.json
 
 # mypy
 .mypy_cache/
@@ -130,3 +132,11 @@ catboost_info/
 
 # Артефакты
 cm_*.png
+
+# Airflow local files
+airflow/.env
+airflow/logs/
+airflow/dags/__pycache__/
+
+# Local config files
+config/local_config.py
