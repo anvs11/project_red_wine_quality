@@ -143,7 +143,7 @@ uvicorn api.main:app --host 127.0.0.1 --port 8000
 | Stage                 | Задача                   | Инструмент                     |
 |-----------------------|--------------------------|--------------------------------|
 | **Lint**              | Проверка кода            | flake8                         |
-| **DVC Check**         | Проверка версионирования | dvc status, dvc pull --dry-run |
+| **DVC Check**         | Проверка версионирования | dvc status, dvc pull           |
 | **Unit Tests**        | Тесты API                | pytest                         |
 | **Integration Tests** | Полные сценарии          | pytest (manual)                |
 
