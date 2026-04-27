@@ -2,4 +2,5 @@
     remote = my-minio
 ['remote "my-minio"']
     url = s3://vjacheslav-andreev-njw9544/dvc-storage
+    endpointurl = https://s3.lab.karpov.courses
     use_ssl = true
