@@ -5,7 +5,7 @@ stages:
   - integration_tests
 
 flake8:
-  image: python:3.8
+  image: python:3.12-slim
   stage: lint
   script:
     - pip install flake8
@@ -16,7 +16,7 @@ flake8:
       when: on_success
 
 dvc_check:
-  image: python:3.8
+  image: python:3.12-slim
   stage: dvc_check
   script:
     - pip install dvc[s3]
@@ -32,7 +32,7 @@ dvc_check:
       when: on_success
 
 unit_tests:
-  image: python:3.8
+  image: python:3.12-slim
   stage: unit_tests
   script:
     - pip install -r requirements-test.txt
@@ -42,7 +42,7 @@ unit_tests:
       when: on_success
 
 integration_tests:
-  image: python:3.8
+  image: python:3.12-slim
   stage: integration_tests
   script:
     - pip install -r requirements-test.txt
