@@ -8,7 +8,8 @@ PROJECT_ROOT = Path(__file__).parent.parent
 SRC_DIR = PROJECT_ROOT / "src"
 sys.path.append(str(SRC_DIR))
 
-from config import config
+from config import config  # noqa: E402
+
 MODEL_TO_TRAIN = config.get("active_model", "random_forest")
 
 default_args = {
@@ -44,7 +45,10 @@ train_task = BashOperator(
 
 dvc_add_and_push = BashOperator(
     task_id='dvc_add_and_push',
-    bash_command='cd /opt/airflow/project && dvc add -f models/rf_model.pkl && dvc add -f models/model_metadata.json && dvc push',
+    bash_command=('cd /opt/airflow/project &&'
+                  'dvc add -f models/rf_model.pkl &&'
+                  'dvc add -f models/model_metadata.json &&'
+                  'dvc push'),
     dag=dag
 )
 
