@@ -6,6 +6,7 @@ config = {
         "random_forest": "models/rf_model.pkl",
         "catboost": "models/catboost_model.cbm"
     },
+    "active_model": "random_forest",
     "data_path": "data/winequality-red.csv",
     "data": {
         "test_size": 0.25,
