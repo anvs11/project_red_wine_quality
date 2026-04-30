@@ -1,6 +1,15 @@
 from airflow import DAG
 from airflow.operators.bash import BashOperator
 from datetime import datetime, timedelta
+import sys
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).parent.parent
+SRC_DIR = PROJECT_ROOT / "src"
+sys.path.append(str(SRC_DIR))
+
+from config import config
+MODEL_TO_TRAIN = config.get("active_model", "random_forest")
 
 default_args = {
     'owner': 'vjacheslav-andreev-njw9544',
@@ -29,13 +38,13 @@ dvc_pull_data = BashOperator(
 # работаю внутри смонтированной папки /opt/airflow/project
 train_task = BashOperator(
     task_id='train_model',
-    bash_command='cd /opt/airflow/project && python src/train.py --model random_forest',
+    bash_command=f'cd /opt/airflow/project && python src/train.py --model {MODEL_TO_TRAIN}',
     dag=dag
 )
 
 dvc_add_and_push = BashOperator(
     task_id='dvc_add_and_push',
-    bash_command='cd /opt/airflow/project && dvc add -f models/rf_model.pkl && dvc push',
+    bash_command='cd /opt/airflow/project && dvc add -f models/rf_model.pkl && dvc add -f models/model_metadata.json && dvc push',
     dag=dag
 )
 
