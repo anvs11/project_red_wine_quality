@@ -35,7 +35,7 @@ def load_and_preprocess(path):
     """Загрузка данных и бинарное представление quality"""
     label_quality = LabelEncoder()
     df = pd.read_csv(path, sep=',')
-    df['quality'] = pd.cut(df['quality'], bins=(2, 6.5, 8), labels=['bad', 'good'])
+    df['quality'] = pd.cut(df['quality'], bins=config["quality_bins"], labels=config["quality_labels"])
     df['quality'] = label_quality.fit_transform(df['quality'])
     X = df.drop('quality', axis=1)
     y = df['quality']
@@ -77,11 +77,11 @@ def train_and_log(model_name, X_train, y_train, X_test, y_test, params):
         if model_name == "random_forest":
             from sklearn.ensemble import RandomForestClassifier
             model = RandomForestClassifier(random_state=config["random_state"], **params)
-            model_path = os.path.join("models", "rf_model.pkl")
+            model_path = config["model_paths"][model_name]
         elif model_name == "catboost":
             from catboost import CatBoostClassifier
             model = CatBoostClassifier(random_state=config["random_state"], **params)
-            model_path = os.path.join("models", "catboost_model.cbm")
+            model_path = config["model_paths"][model_name]
         else:
             raise ValueError(f"Unknown model: {model_name}")
 

@@ -1,7 +1,8 @@
 from fastapi import FastAPI, HTTPException, status
 from contextlib import asynccontextmanager
 
-from .schemas import WineFeatures, PredictionResponse, HealthResponse, ModelInfoResponse
+from .schemas import (WineFeatures, PredictionResponse,
+                      HealthResponse, ModelInfoResponse)
 from .model_loader import ModelLoader
 
 model_loader: ModelLoader = None
@@ -36,7 +37,7 @@ def read_root():
 
 
 @app.post("/predict", response_model=PredictionResponse, tags=["Prediction"])
-async def predict(data: WineFeatures):
+async def predict(data: WineFeatures, force_reload: bool = False):
     """
     Предсказание качества вина по 11 признакам.
 
@@ -44,12 +45,16 @@ async def predict(data: WineFeatures):
     - prediction: 'good' или 'bad'
     - probability: уверенность модели
     - model_version: хэш версии из DVC
+
+    force_reload: если True — проверит актуальность модели перед предсказанием
     """
-    if not model_loader or not model_loader.is_loaded():
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Model not loaded. Check /health endpoint."
-        )
+    # Если модель не загружена или запрошена перезагрузка — пробуем обновить
+    if not model_loader or not model_loader.is_loaded() or force_reload:
+        if not model_loader or not model_loader.reload():
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Model not loaded. Check /health endpoint."
+            )
 
     try:
         features = [
@@ -100,7 +105,8 @@ async def health_check():
 
 @app.get("/model-info", response_model=ModelInfoResponse, tags=["Metadata"])
 async def model_info():
-    """Метаданные модели: тип, метрики, версия (читаются из файла, созданного при обучении)"""
+    """Метаданные модели: тип, метрики, версия
+    (читаются из файла, созданного при обучении)"""
     if not model_loader or not model_loader.is_loaded():
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,

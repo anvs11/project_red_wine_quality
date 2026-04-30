@@ -1,5 +1,11 @@
 config = {
+    "quality_bins": (2, 6.5, 8),
+    "quality_labels": ['bad', 'good'],
     "random_state": 42,
+    "model_paths": {
+        "random_forest": "models/rf_model.pkl",
+        "catboost": "models/catboost_model.cbm"
+    },
     "data_path": "data/winequality-red.csv",
     "data": {
         "test_size": 0.25,

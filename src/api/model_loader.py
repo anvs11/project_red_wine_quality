@@ -33,11 +33,15 @@ class ModelLoader:
     def _pull_from_dvc(self) -> bool:
         """Выполняет `dvc pull` для получения актуальной модели"""
         try:
+            # определение корня проекта относительно этого файла
+            # src/api/model_loader.py -> parent ->
+            # -> api -> parent -> src -> parent -> ROOT
+            project_root = Path(__file__).resolve().parent.parent.parent
             result = subprocess.run(
                 ["dvc", "pull", str(self.model_path)],
                 capture_output=True,
                 text=True,
-                cwd=Path(__file__).parent.parent
+                cwd=project_root
             )
             return result.returncode == 0
         except Exception as e:
@@ -69,7 +73,8 @@ class ModelLoader:
                 import joblib
                 self.model = joblib.load(self.model_path)
                 self.version = self._get_dvc_version()
-                print(f"Model loaded: {self.model_path} (version: {self.version})")
+                print(f"Model loaded: {self.model_path} \
+                (version: {self.version})")
             except Exception as e:
                 print(f"Failed to load model: {e}")
                 return False

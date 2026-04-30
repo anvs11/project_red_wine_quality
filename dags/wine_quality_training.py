@@ -20,6 +20,12 @@ dag = DAG(
     catchup=False
 )
 
+dvc_pull_data = BashOperator(
+    task_id='dvc_pull_data',
+    bash_command='cd /opt/airflow/project && dvc pull data/winequality-red.csv',
+    dag=dag
+)
+
 # работаю внутри смонтированной папки /opt/airflow/project
 train_task = BashOperator(
     task_id='train_model',
@@ -27,10 +33,10 @@ train_task = BashOperator(
     dag=dag
 )
 
-dvc_push_task = BashOperator(
-    task_id='dvc_push',
-    bash_command='cd /opt/airflow/project && dvc push',
+dvc_add_and_push = BashOperator(
+    task_id='dvc_add_and_push',
+    bash_command='cd /opt/airflow/project && dvc add -f models/rf_model.pkl && dvc push',
     dag=dag
 )
 
-train_task >> dvc_push_task
+dvc_pull_data >> train_task >> dvc_add_and_push
